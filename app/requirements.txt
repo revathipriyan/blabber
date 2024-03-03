@@ -1,3 +1,5 @@
-flask
-flask-socketio
+flask==3.0.2
+flask-socketio==5.3.6
 eventlet
+flask_login
+python-dotenv

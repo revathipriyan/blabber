@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/main.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <title>BLABBER CHATSCREEN</title>
+</head>
+<body>
+    <h1>BLABBER </h1>
+    <div class="container">
+        <div class="clickable-list">
+            <ul>
+                <li class="user">Aswathi</li>
+                <li class="user">Maya</li>
+                <li class="user">Mrunal</li>
+                <li class="user">Sakshi</li>
+                <li class="user">Madhura</li>
+              </ul>
+        </div>
+        <!-- THE CHATSCREEN -->
+        <div class="chatscreen">
+            <div class="chatscreen-space">
+                <h1>You are now chatting with {{ username }}</h1>
+                <div id="messages"></div>
+            </div>
+            <span>
+            <input type="text" id="message-input" class="text-box" placeholder="Type your message...">
+            <button class="send-button" id="send-button" type="submit">SEND</button>
+            </span>
+        </div>̥
+    </div>
+
+    
+    
+  
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+<script>
+      $(document).ready(function () {
+        // Click event for the clickable list
+        $('.user').click(function () {
+            var username = $(this).text();
+            updateChatHeader(username);
+            clearChatScreen();
+            appendToChatScreen(username + ' has joined the chat.<br>');
+        });
+
+        // Function to clear the chat screen
+        function clearChatScreen() {
+            $('#messages').html('');
+        }
+
+        function updateChatHeader(username) {
+            $('.chatscreen h1').text('You are now chatting with ' + username);
+        }
+
+        // Click event for the send button
+        $('#send-button').click(function () {
+            var message = $('#message-input').val();
+            appendToChatScreen('You: ' + message + '<br>');
+            // Add logic to send the message to the server or do further processing
+            $('#message-input').val(''); // Clear the input after sending
+        });
+
+        // Function to append messages to the chat screen
+        function appendToChatScreen(message) {
+            $('#messages').append(message);
+        }
+    });
+
+    const socket = io.connect("http://127.0.0.1:5000/");
+    console.log("socket making d")
+    socket.on('connect',function(){
+        socket.emit('join_room',{
+            username: "{{ username }}",
+            room: "{{ room }}"
+        });
+       let message_input = document.getElementById("message_input");
+       document.getElementById("message_input_form").onsubmit = function(e) {
+        e.preventDefault();
+        const message = message_input.value.trim();
+        if (message.length) {
+            socket.emit('send_message',{
+                username: "{{ username }}",
+                room: "{{ room }}",
+                message: message
+            })
+        }
+        message_input.value = '';
+        message_input.focus();
+       }
+    });
+
+    socket.on('receive_message',function(data){
+        console.log(data)
+        const newNode =  document.createElement('div');
+        newNode.innerHTML = `${data.username}:&nbsp;</b> ${data.message}`;
+        document.getElementById('messages').appendChild(newNode);
+    });
+
+    socket.on("join_room_announcement", function(data){
+        console.log(data);
+        const newNode = document.createElement('div')
+        newNode.innerHTML = `<b>${data.username}</b> has joined the room.`;
+        document.getElementById('messages').appendChild(newNode);
+    })
+
+
+
+</script>
+</html>
